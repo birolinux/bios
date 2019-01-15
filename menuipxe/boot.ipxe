@@ -1,0 +1,5 @@
+#!ipxe
+
+chain --autofree boot.ipxe.cfg ||
+
+chain --replace --autofree ${menu-url} ||

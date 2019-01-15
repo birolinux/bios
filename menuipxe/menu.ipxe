@@ -1,0 +1,77 @@
+#!ipxe
+
+set menu-timeout 8000
+#set submenu-timeout ${menu-timeout}
+isset ${menu-default} || set menu-default exit
+######Main Menu ######
+:start
+
+menu Escolha o sistema para ${initiator-iqn}
+item --gap -- ------------O S--------
+item --key r rescue Rescue
+item --key n normal Boot Saber 3
+item --key i install Instalador
+#item --key c config config
+#item shell ipxe shell
+item reboot reboot
+item
+item --key x exit sair pxe
+choose --timeout ${menu-timeout} --default ${menu-default} selected || goto cancel
+set menu-timeout 0
+goto ${selected}
+
+:cancel
+echo You cancelled the menu, dropping you to a shell
+
+:shell
+echo Digite exit para voltar ao menu
+shell
+set menu-timeout 0
+set sub-menu-timeout 0
+goto start
+
+:failed
+echo Falha na inicialização, voltando para shell
+goto shell
+
+:reboot
+reboot
+
+:exit
+exit
+
+:config
+config
+goto start
+
+:back
+set menu-timeout 0
+clear submenu-default
+goto start
+####### MENU PRINCIPAL ITEMS #######
+
+
+:rescue
+kernel http://${next-server}/pxe/rescue32 eth0=192.168.80.19 netboot=http://192.168.80.1/pxe/sysrcd.dat
+boot 
+initrd http://${next-server}/pxe/initram.igz
+#imgargs eth0=192.168.80.19 netboot=http://192.168.80.1/pxe/sysrcd.dat
+boot || goto failed
+goto start
+
+:normal
+kernel http://192.168.80.1/pxe/3.6.2-client ip=dhcp root=/dev/nfs nfsroot=192.168.80.1:/opt/saber/minidistro imagetoram=sabertc.img nfsmnt=/opt vga=791 noapic pci=noacpi irqpoll 
+boot 
+initrd http://192.168.80.1/pxe/initrd.img 
+boot || goto failed
+goto start
+
+:install
+echo Instalando Saber 3
+kernel http://${next-server}/pxe/install/live/vmlinuz root=/dev/nfs boot=live fetch=http://${next-server}/pxe/install/live/filesystem.squashfs
+initrd http://${next-server}/pxe/install/live/initrd.img
+boot || goto failed
+goto start
+
+
+

@@ -1,0 +1,87 @@
+# Os usuários devem estar cadastrados corretamente neste arquivo, conforme exemplo abaixo.
+# Somente dessa forma os clientes idenficarao o usuarios correspondentes.
+
+Server-identifier		192.168.80.1;
+#deny unknown-clients;
+
+ddns-update-style		ad-hoc;
+default-lease-time		43200;
+max-lease-time			86400;
+
+option subnet-mask		255.255.255.0;
+option broadcast-address	192.168.80.255;
+option routers			192.168.80.1;
+option domain-name		"saber.local";
+option domain-name-servers	8.8.8.8;
+next-server			192.168.80.1;
+#option root-path		"192.168.80.1:/opt/saber/boot/";
+#option root-path		"192.168.80.1:/opt/saber/minidistro";
+#filename "undionly.kpxe";
+option space ipxe;
+option ipxe.no-pxedhcp code 176 = unsigned integer 8;
+option ipxe.no-pxedhcp 1;
+option ipxe-encap-opts code 175 = encapsulate ipxe;
+option ipxe.http code 19 = unsigned integer 8;
+option ipxe.menu code 39 = unsigned integer 8;
+option option-128 code 128 = string;
+option option-129 code 129 = text;
+
+if substring (option vendor-class-identifier,0,9)="PXEClient" {
+filename "undionly.kpxe";
+#     filename "ipxelinux.0";
+#     filename "http://192.168.80.1/pxe/boot.ipxe";
+#     filename "boot.ipxe";
+}
+if exists user-class and ( option user-class = "iPXE" ) {
+	filename "http://192.168.80.1/pxe/boot.ipxe";
+#option root-path "http://192.168.80.1/pxe";
+} 
+
+subnet 192.168.80.0 netmask 255.255.255.0 {
+    range 192.168.80.3 192.168.80.253;
+}
+
+group {
+ 	host ecid1 {
+		hardware ethernet 08:00:27:5d:6d:11;
+		fixed-address 192.168.80.11;
+		option host-name "ecid1";
+	}
+ 	host ecid2 {
+		hardware ethernet 08:00:27:fd:30:16;
+		fixed-address 192.168.80.12;
+		option host-name "ecid2";
+	}
+ 	host ecid3 {
+		hardware ethernet 00:60:98:ef:9a:7b;
+		fixed-address 192.168.80.13;
+		option host-name "ecid3";
+	}
+ 	host ecid4 {
+		hardware ethernet c8:9c:dc:cc:19:93;
+#		hardware ethernet 00:16:ec:cf:aa:e9;
+		fixed-address 192.168.80.14;
+		option host-name "ecid4";
+	}
+ 	host ecid5 {
+		hardware ethernet 08:00:27:fd:30:17;
+		fixed-address 192.168.80.15;
+		option host-name "ecid5";
+	}
+ 	host ecid6 {
+		hardware ethernet 00:16:ec:c8:a1:4a;
+#		hardware ethernet 00:16:ec:5e:8b:0e;
+		fixed-address 192.168.80.16;
+		option host-name "ecid6";
+	}
+ 	host ecid7 {
+		hardware ethernet 00:30:18:d0:40:76;
+		fixed-address 192.168.80.17;
+		option host-name "ecid7";
+	}
+ 	host ecid8 {
+		hardware ethernet 80:c1:6e:ab:78:e0;
+		fixed-address 192.168.80.18;
+		option host-name "ecid8";
+	}
+}
