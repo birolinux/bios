@@ -1,0 +1,107 @@
+﻿Procedimento Operacional para atualização de rom de placa mãe de cpu-cliente
+
+
+Autor: Walter Maciel Junior
+data: 27/08/2015  versão:1
+
+Procedimento para resolver o problema de desconfiguração dos computadores “cpu-cliente” de telecentros da Prefeitura de Sao Paulo .
+
+Homologado nos modelos:
+Tecnoworld Winnet
+e-max
+Barebone
+
+Não fiz no modelo  init, porque não apresenta o problema ainda.
+
+Obs: Com este procedimento a troca de baterias não vai ser mais  necessária.
+
+1- acessar o diretorio /opt/saber/
+cd /opt/saber/
+
+2- Fazer uma cópia da minidistro
+cp -a minidistro minidistro1
+
+
+3- Copiar as roms modificadas para a pasta /opt/saber/minidistro/root
+Arquivos: 
+945GSE.rom, CLE266-8235.rom,  D42S.rom,   IPX425R3.rom, TPDS06.rom, TPS01.rom 
+
+4 – Copiar script atualizarbios2.sh para root/usr/local/bin
+
+5 – Editar arquivo minidistro1/etc/X11/detectamonitor.sh
+
+alterar a função xsaber:
+
+function xsaber() { 
+#while true 
+#do 
+
+#xinit -- /usr/bin/Xorg -config /tmp/xorg.conf 
+echo atualizar bios 
+#done 
+} 
+
+6- Permissão de escrita no NFS para instalar pacote flashrom:
+alterar /opt/   192.168.80.0/255.255.255.0(ro,no_root_squash,no_subtree_check,sync,no_all_squash)
+
+para /opt/   192.168.80.0/255.255.255.0(rw,no_root_squash,no_subtree_check,sync,no_all_squash)
+
+/etc/init.d/nfs-kernel-server restart
+
+7 – Instalar pacote flashrom e desabilitar alguns serviços:
+chroot minidistro1 /bin/bash
+aptitude update
+aptitude install flashrom
+update-rc.d munin-node disable
+update-rc.d fancontrol disable
+update-rc.d esd disable
+exit
+
+8- Desabilitar ocs comentando o arquivo
+vi minidistro1/etc/rc.local
+#/etc/ocsinventory/ocsinventory.sh &
+9- Alterando as configurações de boot:
+
+sed -i 's/Y/N/' client-cfg/default
+sed -i 's/minidistro/minidistro1/' boot/pxelinux.cfg/default
+
+Caso tenha o pcontrole instalado:
+sed -i 's/minidistro/minidistro1/' boot/pxelinux.cfg/*
+sed -i 's/Y/N/' client-cfg/*
+
+
+10- Iniciar a atualização:
+
+Ligar o cliente e quando aparece o prompt digitar atualizabios.sh e apertar a tecla enter.
+
+No Caso da placa D42S vai aparecer uma mensagem de confirmação antes de atualizar, as demais a atualização é feita direto.
+No final vai aparecer a mensagem:
+VERIFIED
+#
+
+Em algumas atualizações pode aparecer mensagem de falha mas pode ignorar, se aparecer o prompt conforme acima  significa que foi atualizado corretamente.
+
+Fazer o procedimento em todos os cpu-cliente simultaneamente.
+
+11 – Voltando as configuração padrão do sistema
+sed -i 's/minidistro1/minidistro/' boot/pxelinux.cfg/*
+sed -i 's/N/Y/' client-cfg/*
+
+Caso tenha o pcontrole instalado:
+sed -i 's/minidistro1/minidistro/' boot/pxelinux.cfg/*
+sed -i 's/N/Y/' client-cfg/*
+
+vi minidistro1/etc/rc.local
+/etc/ocsinventory/ocsinventory.sh &
+
+vi /etc/exports
+
+/opt/   192.168.80.0/255.255.255.0(ro,no_root_squash,no_subtree_check,sync,no_all_squash)
+
+executar:
+#/etc/init.d/nfs-kernel-server restart
+
+12 – Reiniciar o cpu-cliente
+
+O procedimento acima pode e deve ser inserido em um script para agilizar o processo de atualização, mas este documento visa mostrar detalhadamente todo o processo de atualização.
+
